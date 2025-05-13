@@ -1,5 +1,5 @@
 import jsonwebtoken from 'jsonwebtoken';
-import bcryptjs from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 
@@ -214,7 +214,7 @@ registerCustomersCtrl.registerCustomer = async (req, res) => {
         let token;
         try {
             token = generateToken(email, verificationCode);
-            res.cookie('verificationToken', token, { httpOnly: true, maxAge: 2 * 60 * 60 * 1000 });
+            res.cookie('verificationToken', token, { httpOnly: true, maxAge: 30 * 60 * 1000 }); // 30 minutos
         } catch (err) {
             console.error('Error generating token:', err);
             return res.status(500).json({ message: 'Error generating token' });
@@ -238,30 +238,46 @@ registerCustomersCtrl.verifyCodeEmail = async (req, res) => {
     const { verificationCode } = req.body;
 
     try {
-        // Verify the JWT token
+        // Verificar si la cookie existe
         const token = req.cookies.verificationToken;
         if (!token) {
+            console.log("No se encontró la cookie de verificación.");
             return res.status(401).json({ message: 'No token provided' });
         }
 
+        // Decodificar el token JWT
         const decoded = jsonwebtoken.verify(token, config.jwt.JWT_SECRET);
+        console.log("Token decodificado:", decoded);
+
         const { email, verificationCode: storedCode } = decoded;
-        
+
+        // Comparar el código enviado con el almacenado
+        console.log("Código enviado:", verificationCode);
+        console.log("Código almacenado:", storedCode);
+
         if (verificationCode !== storedCode) {
             return res.status(400).json({ message: 'Invalid verification code' });
         }
 
-        const customer = await customer.findOne({ email });
+        // Buscar al cliente en la base de datos
+        const customer = await customersMdl.findOne({ email });
+        if (!customer) {
+            console.log("Cliente no encontrado con el email:", email);
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+
+        // Marcar al cliente como verificado
         customer.isVerified = true;
         await customer.save();
-        // Clear the cookie after successful verification
+
+        // Limpiar la cookie después de la verificación exitosa
         res.clearCookie('verificationToken');
 
         res.status(200).json({ message: 'Email verified successfully' });
     } catch (error) {
-        console.error(error);
+        console.error("Error al verificar el código:", error);
         res.status(500).json({ message: 'Server error' });
     }
-}
+};
 
 export default registerCustomersCtrl;

@@ -24,7 +24,8 @@ movieCtrl.getMovies = async (req, res) => {
 //POST
 movieCtrl.createMovie = async (req, res) => {
     try {
-        const { title, description, director, genre, releaseDate, duration } = req.body;
+        console.log("Archivo recibido:", req.file);
+        console.log("Datos recibidos:", req.body);
 
         // Validar que se haya enviado una imagen
         if (!req.file) {
@@ -42,30 +43,55 @@ movieCtrl.createMovie = async (req, res) => {
 
         // Crear nueva película usando el spread operator
         const newMovie = new moviesMdl({
-            ...req.body,
-            imgUrl: result.secure_url // Agregar la URL de la imagen
+            ...req.body, // Agregar todos los campos enviados en el cuerpo de la solicitud
+            imgUrl: result.secure_url // Agregar la URL de la imagen subida
         });
 
         // Guardar la película en la base de datos
         const savedMovie = await newMovie.save();
-        res.status(201).json(savedMovie);
+        res.status(201).json({ 
+            message: "Película creada exitosamente", 
+            movie: savedMovie 
+        });
     } catch (error) {
         console.error("Error al crear la película:", error);
-        res.status(500).json({ message: "Error al crear la película" });
+        res.status(500).json({ message: "Error al crear la película", error: error.message });
     }
 }
 
 //PUT
 movieCtrl.updateMovie = async (req, res) => {
     try {
-        const updatedMovie = await moviesMdl.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updatedMovie) {
-            return res.status(404).json({ message: "Movie not found" });
+        const { id } = req.params;
+
+        // Buscar la película existente
+        const existingMovie = await moviesMdl.findById(id);
+        if (!existingMovie) {
+            return res.status(404).json({ message: "Película no encontrada" });
         }
-        res.status(200).json(updatedMovie);
-    }
-    catch (error) {
-        res.status(400).json({ message: error.message });
+
+        // Si se envía un archivo, subir la nueva imagen a Cloudinary
+        let updatedFields = { ...req.body }; // Copiar los campos enviados en el cuerpo de la solicitud
+        if (req.file) {
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: "public",
+                use_filename: true,
+                unique_filename: false,
+                overwrite: true,
+                allowed_formats: ["jpg", "png", "jpeg"]
+            });
+            updatedFields.imgUrl = result.secure_url; // Actualizar la URL de la imagen
+        }
+
+        // Actualizar la película en la base de datos
+        const updatedMovie = await moviesMdl.findByIdAndUpdate(id, updatedFields, { new: true });
+        res.status(200).json({ 
+            message: "Película actualizada exitosamente", 
+            movie: updatedMovie 
+        });
+    } catch (error) {
+        console.error("Error al actualizar la película:", error);
+        res.status(500).json({ message: "Error al actualizar la película", error: error.message });
     }
 }
 

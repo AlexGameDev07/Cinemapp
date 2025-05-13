@@ -1,5 +1,5 @@
 import bcryptjs from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jsonwebtoken from "jsonwebtoken";
 import { config } from "../config.js";
 
 import employeesMdl from "../models/employeesMdl.js";
