@@ -21,6 +21,10 @@ const employeeSchema = new Schema({
         type: String,
         required: true,
     },
+    password: {
+        type: String,
+        required: true,
+    },
     telephone: {
         type: String,
         required: true,
