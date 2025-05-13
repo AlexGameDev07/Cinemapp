@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import customersRoutes from "./src/routes/customersRoutes.js"
 import emloyeesRoutes from "./src/routes/employeesRoutes.js"
 import moviesRoutes from "./src/routes/moviesRoutes.js"
+import loginRoutes from "./src/routes/loginRoutes.js"
 
 
 //settings
@@ -17,4 +18,5 @@ app.use("/api/customers", customersRoutes);
 app.use("/api/employees", emloyeesRoutes);
 app.use("/api/movies", moviesRoutes);
 
+app.use("/api/login", loginRoutes);
 export default app;
