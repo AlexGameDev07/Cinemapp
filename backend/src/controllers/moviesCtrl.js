@@ -1,4 +1,13 @@
 import moviesMdl from "../models/moviesMdl.js";
+import {v2 as cloudinary} from 'cloudinary';
+
+import {config} from "../config.js";
+
+cloudinary.config({
+    cloud_name: config.cloudinary.CLOUDINARY_NAME,
+    api_key: config.cloudinary.CLOUDINARY_API_KEY,
+    api_secret: config.cloudinary.CLOUDINARY_API_SECRET
+});
 
 const movieCtrl = {};
 
@@ -14,12 +23,35 @@ movieCtrl.getMovies = async (req, res) => {
 
 //POST
 movieCtrl.createMovie = async (req, res) => {
-    const movie = new moviesMdl(req.body);
     try {
-        const savedMovie = await movie.save();
+        const { title, description, director, genre, releaseDate, duration } = req.body;
+
+        // Validar que se haya enviado una imagen
+        if (!req.file) {
+            return res.status(400).json({ message: "Falta la imagen" });
+        }
+
+        // Subir imagen a Cloudinary
+        const result = await cloudinary.uploader.upload(req.file.path, {
+            folder: "public",
+            use_filename: true,
+            unique_filename: false,
+            overwrite: true,
+            allowed_formats: ["jpg", "png", "jpeg"]
+        });
+
+        // Crear nueva película usando el spread operator
+        const newMovie = new moviesMdl({
+            ...req.body,
+            imgUrl: result.secure_url // Agregar la URL de la imagen
+        });
+
+        // Guardar la película en la base de datos
+        const savedMovie = await newMovie.save();
         res.status(201).json(savedMovie);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        console.error("Error al crear la película:", error);
+        res.status(500).json({ message: "Error al crear la película" });
     }
 }
 

@@ -6,7 +6,7 @@ import customersMdl from '../models/customersMdl.js';
 import employeesMdl from '../models/employeesMdl.js';
 
 import { config } from '../config.js';
-import { sendEmail, HTMLRecoveryEmail } from '../utils/mailPasswordRecovery.js';
+import { sendEmail, HTMLRecoveryEmail } from '../utils/mailPasswordRecoveryUtilitie.js';
 
 const passwordRecoveryCtrl = {};
 
