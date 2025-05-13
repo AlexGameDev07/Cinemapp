@@ -8,6 +8,8 @@ import moviesRoutes from "./src/routes/moviesRoutes.js"
 import loginRoutes from "./src/routes/loginRoutes.js"
 import logoutRoutes from "./src/routes/logoutRoutes.js"
 import passwordRecoveryRoutes from "./src/routes/passwordRecoveryRoutes.js"
+import registerCustomersRoutes from "./src/routes/registerCustomersRoutes.js"
+import registerEmployeesRoutes from "./src/routes/registerEmployeesRoutes.js"
 
 
 //settings
@@ -23,4 +25,7 @@ app.use("/api/movies", moviesRoutes);
 app.use("/api/login", loginRoutes);
 app.use("/api/logout", logoutRoutes);
 app.use("/api/passwordRecovery", passwordRecoveryRoutes);
+app.use("/api/registerCustomers", registerCustomersRoutes);
+app.use("/api/registerEmployees", registerEmployeesRoutes);
+
 export default app;
